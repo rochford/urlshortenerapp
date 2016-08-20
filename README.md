@@ -8,8 +8,7 @@ urlshortenerapp/
   public/
     index.html - simple page with a html form to HTTP::POST a URL to shorten.
     result.html - resulting page including the shortened URL.
-      Note: going to need to use templates here to show shortURL
-    error.html - page if cannot find shortURL.
+    error.html - page if cannot find shortURL or other errors
 urlshortener/
   urlshortener.go
   (test file here)
