@@ -5,6 +5,9 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/rochford/urlshortener"
 
@@ -35,7 +38,13 @@ func createPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func process(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	r.ParseForm()
 	originalURL := r.FormValue("originalUrl")
-	shortURL, err := urlshortener.GenerateShortURL(originalURL)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
+	defer cancel()
+	ctx = context.WithValue(ctx, "originalUrl", originalURL)
+
+	shortURL, err := urlshortener.GenerateShortURL(ctx)
+
 	if err != nil {
 		errorPage(500, err.Error(), w, r, ps)
 		return
@@ -53,7 +62,13 @@ func process(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 }
 
 func resolveURL(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	url, err := urlshortener.ResolveShortURL(ps.ByName("id"))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
+	defer cancel()
+
+	ctx = context.WithValue(ctx, "id", ps.ByName("id"))
+	url, err := urlshortener.ResolveShortURL(ctx)
+
 	if err != nil {
 		errorPage(500, err.Error(), w, r, ps)
 		return
