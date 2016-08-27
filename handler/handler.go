@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"fmt"
@@ -17,9 +17,9 @@ import (
 // errorPage function sends a HTML error page using errorMsg
 func errorPage(httpCode int, errorMsg string, w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.WriteHeader(httpCode)
-	t, err := template.ParseFiles("public/error.html")
+	t, err := template.ParseFiles("../public/error.html")
 	if err != nil {
-		bytes, _ := ioutil.ReadFile("public/error.html")
+		bytes, _ := ioutil.ReadFile("../public/error.html")
 		fmt.Fprintln(w, string(bytes))
 		return
 	}
@@ -27,7 +27,7 @@ func errorPage(httpCode int, errorMsg string, w http.ResponseWriter, r *http.Req
 }
 
 func createPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	bytes, err := ioutil.ReadFile("public/index.html")
+	bytes, err := ioutil.ReadFile("../public/index.html")
 	if err != nil {
 		errorPage(500, err.Error(), w, r, ps)
 		return
@@ -50,7 +50,7 @@ func process(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	t, err := template.ParseFiles("public/result.html")
+	t, err := template.ParseFiles("../public/result.html")
 	if err != nil {
 		errorPage(500, err.Error(), w, r, ps)
 		return
@@ -82,11 +82,12 @@ func resolveURL(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.WriteHeader(302)
 }
 
-func main() {
+// Routes function sets the HTTP API endpoints.
+func Routes() *httprouter.Router {
 	router := httprouter.New()
 	router.GET("/", createPage)
 	router.POST("/process", process)
 	router.GET("/:id", resolveURL)
-
-	http.ListenAndServe(":8080", router)
+	fmt.Println("routes done")
+	return router
 }
