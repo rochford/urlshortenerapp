@@ -14,12 +14,16 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+var indexHTML = "../public/index.html"
+var resultHTML = "../public/result.html"
+var errorHTML = "../public/error.html"
+
 // errorPage function sends a HTML error page using errorMsg
 func errorPage(httpCode int, errorMsg string, w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.WriteHeader(httpCode)
-	t, err := template.ParseFiles("../public/error.html")
+	t, err := template.ParseFiles(errorHTML)
 	if err != nil {
-		bytes, _ := ioutil.ReadFile("../public/error.html")
+		bytes, _ := ioutil.ReadFile(errorHTML)
 		fmt.Fprintln(w, string(bytes))
 		return
 	}
@@ -27,7 +31,7 @@ func errorPage(httpCode int, errorMsg string, w http.ResponseWriter, r *http.Req
 }
 
 func createPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	bytes, err := ioutil.ReadFile("../public/index.html")
+	bytes, err := ioutil.ReadFile(indexHTML)
 	if err != nil {
 		errorPage(500, err.Error(), w, r, ps)
 		return
@@ -37,11 +41,11 @@ func createPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 func process(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	r.ParseForm()
-	originalURL := r.FormValue("originalUrl")
+	originalURL := r.FormValue("originalURL")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
 	defer cancel()
-	ctx = context.WithValue(ctx, "originalUrl", originalURL)
+	ctx = context.WithValue(ctx, "originalURL", originalURL)
 
 	shortURL, err := urlshortener.GenerateShortURL(ctx)
 
@@ -50,7 +54,7 @@ func process(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	t, err := template.ParseFiles("../public/result.html")
+	t, err := template.ParseFiles(resultHTML)
 	if err != nil {
 		errorPage(500, err.Error(), w, r, ps)
 		return
@@ -77,7 +81,6 @@ func resolveURL(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		errorPage(400, "Bad request message or unknown shortURL", w, r, ps)
 		return
 	}
-	fmt.Println(url)
 	w.Header().Set("Location", url)
 	w.WriteHeader(302)
 }
@@ -88,6 +91,5 @@ func Routes() *httprouter.Router {
 	router.GET("/", createPage)
 	router.POST("/process", process)
 	router.GET("/:id", resolveURL)
-	fmt.Println("routes done")
 	return router
 }
