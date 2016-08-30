@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -14,29 +14,22 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-var indexHTML = "../public/index.html"
-var resultHTML = "../public/result.html"
-var errorHTML = "../public/error.html"
-
 // errorPage function sends a HTML error page using errorMsg
 func errorPage(httpCode int, errorMsg string, w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.WriteHeader(httpCode)
-	t, err := template.ParseFiles(errorHTML)
+	tmpl := template.New("name")
+	t, err := tmpl.Parse(errorHTML)
 	if err != nil {
-		bytes, _ := ioutil.ReadFile(errorHTML)
-		fmt.Fprintln(w, string(bytes))
+		bytes := bytes.NewBufferString(errorHTML)
+		fmt.Fprintln(w, string(bytes.String()))
 		return
 	}
 	t.Execute(w, errorMsg)
 }
 
 func createPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	bytes, err := ioutil.ReadFile(indexHTML)
-	if err != nil {
-		errorPage(500, err.Error(), w, r, ps)
-		return
-	}
-	fmt.Fprintln(w, string(bytes))
+	bytes := bytes.NewBufferString(indexHTML)
+	fmt.Fprintln(w, string(bytes.String()))
 }
 
 func process(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -54,7 +47,8 @@ func process(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	t, err := template.ParseFiles(resultHTML)
+	tmpl := template.New("name")
+	t, err := tmpl.Parse(resultHTML)
 	if err != nil {
 		errorPage(500, err.Error(), w, r, ps)
 		return

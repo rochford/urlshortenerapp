@@ -36,7 +36,7 @@ func TestHomePageWorking(t *testing.T) {
 
 func TestPostURL(t *testing.T) {
 	expectedOriginalUrl := "http://www.golang.org"
-	localhost := "http://127.0.0.1:8080/"
+	localhost := "The short URL is <a href=\"/"
 
 	v := url.Values{}
 	v.Set("originalURL", expectedOriginalUrl)
